@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:homey_park/config/constants/constants.dart';
+import 'package:homey_park/screens/screen.dart';
 import 'package:homey_park/utils/user_location.dart';
 import 'package:homey_park/widgets/navigation_menu.dart';
 
@@ -45,6 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  navigateToParkingDetailScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ParkingDetailScreen(parkingId: 1)),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Marker(
                   markerId: const MarkerId("1"),
                   position: _center ?? DEFAULT_CENTER,
+                  onTap: navigateToParkingDetailScreen,
                   infoWindow: const InfoWindow(
                       title: "UPC",
                       snippet: "Universidad Peruana de Ciencias Aplicadas")),
