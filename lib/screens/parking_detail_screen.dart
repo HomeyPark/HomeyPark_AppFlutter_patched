@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/screens/screen.dart';
 
 class ParkingDetailScreen extends StatelessWidget {
   final int parkingId;
@@ -121,7 +122,7 @@ class ParkingDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Ubicación",
+                        "Descripción",
                         style: theme.textTheme.titleMedium,
                         textAlign: TextAlign.start,
                       ),
@@ -153,7 +154,10 @@ class ParkingDetailScreen extends StatelessWidget {
         width: double.infinity,
         child: FilledButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+            );
           },
           style: ButtonStyle(
             shape: WidgetStateProperty.all(
@@ -162,7 +166,7 @@ class ParkingDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          child: Text("Reservar"),
+          child: const Text("Reservar"),
         ),
       ),
     );
