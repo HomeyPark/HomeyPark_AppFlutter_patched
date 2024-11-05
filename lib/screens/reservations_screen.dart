@@ -14,7 +14,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   void onTapReservation(int id) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ReservationDetailScreen()),
+      MaterialPageRoute(builder: (context) => ReservationDetailScreen()),
     );
   }
 

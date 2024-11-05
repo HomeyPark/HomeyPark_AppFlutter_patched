@@ -2,16 +2,72 @@ import 'package:flutter/material.dart';
 import 'package:homey_park/model/model.dart';
 import 'package:homey_park/widgets/widgets.dart';
 
-class ReservationDetailScreen extends StatelessWidget {
-  const ReservationDetailScreen({super.key});
+class ReservationDetailScreen extends StatefulWidget {
+  ReservationDetailScreen({super.key});
+
+  @override
+  State<ReservationDetailScreen> createState() =>
+      _ReservationDetailScreenState();
+}
+
+class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
+  ReservationStatus status = ReservationStatus.pending;
+
+  final createdDate = DateTime.now().toLocal();
+
+  final startTime = const TimeOfDay(hour: 19, minute: 0);
+
+  final endTime = const TimeOfDay(hour: 19, minute: 30);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final createdDate = DateTime.now().toLocal();
-    final startTime = TimeOfDay(hour: 19, minute: 0);
-    final endTime = TimeOfDay(hour: 19, minute: 30);
+    void showCancelAlertDialog() {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                title: Text("Cancelar reserva",
+                    style: theme.textTheme.titleMedium),
+                content: Text(
+                  "¿Estas seguro de cancelar esta reserva? Esta acción es irreversible y no se mostrara tu publicación.",
+                  style: theme.textTheme.bodyMedium
+                      ?.apply(color: theme.colorScheme.onSurfaceVariant),
+                ),
+                actions: [
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context, 'Close');
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: theme.colorScheme.tertiary),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text("Cerrar",
+                        style: TextStyle(color: theme.colorScheme.tertiary)),
+                  ),
+                  FilledButton(
+                      onPressed: () {
+                        Navigator.pop(context, 'Ok');
+                        setState(() {
+                          status = ReservationStatus.cancelled;
+                        });
+                      },
+                      style: FilledButton.styleFrom(
+                        overlayColor: theme.colorScheme.error,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: theme.colorScheme.error),
+                        ),
+                        backgroundColor: theme.colorScheme.error,
+                      ),
+                      child: const Text("Cancelar")),
+                ],
+              ));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -20,10 +76,10 @@ class ReservationDetailScreen extends StatelessWidget {
           style: theme.textTheme.titleMedium,
         ),
         backgroundColor: Colors.white,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: ReservationBadgeStatus(status: ReservationStatus.pending),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ReservationBadgeStatus(status: status),
           )
         ],
       ),
@@ -104,7 +160,8 @@ class ReservationDetailScreen extends StatelessWidget {
                   ],
                 )),
             const SizedBox(height: 16),
-            CardWithHeader(
+            if (status != ReservationStatus.cancelled)
+              CardWithHeader(
                 headerTextStr: "Cancelar reserva",
                 body: Column(children: [
                   Text(
@@ -120,12 +177,13 @@ class ReservationDetailScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                       ),
-                      onPressed: () {},
+                      onPressed: showCancelAlertDialog,
                       child: Text(
                         "Cancelar reserva",
                         style: TextStyle(color: theme.colorScheme.error),
                       )),
-                ])),
+                ]),
+              ),
           ],
         ),
       ),
