@@ -15,6 +15,7 @@ class ParkingDetailScreen extends StatelessWidget {
           "Detalles del garaje",
           style: theme.textTheme.titleMedium,
         ),
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Column(
