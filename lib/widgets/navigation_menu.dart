@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/screens/screen.dart';
 
 class NavigationMenu extends StatefulWidget {
   const NavigationMenu({super.key});
@@ -22,7 +23,9 @@ const hostDestinations = [
 
 const accountDestinations = [
   NavigationDrawerDestination(
-      icon: Icon(Icons.account_circle), label: Text("Perfil")),
+    icon: Icon(Icons.account_circle),
+    label: Text("Perfil"),
+  ),
   NavigationDrawerDestination(
       icon: Icon(Icons.directions_car), label: Text("Vehículos")),
   NavigationDrawerDestination(
@@ -32,8 +35,6 @@ const accountDestinations = [
 ];
 
 class _NavigationMenuState extends State<NavigationMenu> {
-  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
   int screenIndex = 0;
   late bool showNavigationDrawer;
 
@@ -41,17 +42,24 @@ class _NavigationMenuState extends State<NavigationMenu> {
     setState(() {
       screenIndex = selectedScreen;
     });
-  }
 
-  void openDrawer() {
-    scaffoldKey.currentState!.openEndDrawer();
+    switch (screenIndex) {
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ReservationsScreen()),
+        );
+        break;
+      default:
+        Scaffold.of(context).closeDrawer();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return NavigationDrawer(
-      key: scaffoldKey,
       selectedIndex: screenIndex,
+      onDestinationSelected: handleScreenChanged,
       children: [
         ...guestDestinations,
         const Divider(),
