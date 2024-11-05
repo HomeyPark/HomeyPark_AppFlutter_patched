@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:homey_park/widgets/reservation_card.dart';
+import 'package:homey_park/model/model.dart';
+import 'package:homey_park/screens/reservation_detail_screen.dart';
+import 'package:homey_park/widgets/widgets.dart';
 
 class ReservationsScreen extends StatefulWidget {
   const ReservationsScreen({super.key});
@@ -10,7 +12,10 @@ class ReservationsScreen extends StatefulWidget {
 
 class _ReservationsScreenState extends State<ReservationsScreen> {
   void onTapReservation(int id) {
-    print("Tapped reservation with id: $id");
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ReservationDetailScreen()),
+    );
   }
 
   @override
