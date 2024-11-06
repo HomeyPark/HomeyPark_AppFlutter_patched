@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 
 class GarageCard extends StatelessWidget {
   final int id;
-  const GarageCard({super.key, required this.id});
+  final Function(int) onEdit;
+
+  final Function(int) onDelete;
+
+  const GarageCard(
+      {super.key,
+      required this.id,
+      required this.onEdit,
+      required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +44,9 @@ class GarageCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            onDelete(id);
+                          },
                           icon: Icon(Icons.delete_outlined,
                               color: theme.colorScheme.error),
                           style: OutlinedButton.styleFrom(
@@ -50,7 +60,9 @@ class GarageCard extends StatelessWidget {
                           )),
                       const SizedBox(width: 8),
                       FilledButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            onEdit(id);
+                          },
                           icon: const Icon(Icons.edit_outlined),
                           style: FilledButton.styleFrom(
                               backgroundColor: theme.colorScheme.tertiary,

@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:homey_park/widgets/garage_card.dart';
+import 'package:homey_park/screens/screen.dart';
+import 'package:homey_park/widgets/widgets.dart';
 
 class ManageGarageScreen extends StatelessWidget {
   const ManageGarageScreen({super.key});
+
+  void onEditGarage(BuildContext context, int id) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateEditGarageScreen(id: id)),
+    );
+  }
+
+  void onDeleteGarage(BuildContext context, int id) {}
+
+  void onAddGarage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateEditGarageScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +36,24 @@ class ManageGarageScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: const [
-          GarageCard(id: 1),
-          SizedBox(height: 16),
-          GarageCard(id: 2),
-          SizedBox(height: 16),
-          GarageCard(id: 3),
+        children: [
+          GarageCard(
+            id: 1,
+            onDelete: (id) => onDeleteGarage(context, id),
+            onEdit: (id) => onEditGarage(context, id),
+          ),
+          const SizedBox(height: 16),
+          GarageCard(
+            id: 2,
+            onDelete: (id) => onDeleteGarage(context, id),
+            onEdit: (id) => onEditGarage(context, id),
+          ),
+          const SizedBox(height: 16),
+          GarageCard(
+            id: 3,
+            onDelete: (id) => onDeleteGarage(context, id),
+            onEdit: (id) => onEditGarage(context, id),
+          ),
         ],
       ),
       bottomSheet: Container(
@@ -40,7 +69,7 @@ class ManageGarageScreen extends StatelessWidget {
         ),
         width: double.infinity,
         child: FilledButton.icon(
-          onPressed: () {},
+          onPressed: () => onAddGarage(context),
           icon: const Icon(Icons.add),
           style: ButtonStyle(
             shape: WidgetStateProperty.all(
