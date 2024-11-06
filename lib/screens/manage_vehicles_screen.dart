@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/model/vehicle.dart';
 import 'package:homey_park/services/user_service.dart';
+import 'package:homey_park/services/vehicle_service.dart';
 
-class ManageVehiclesScreen extends StatelessWidget {
+class ManageVehiclesScreen extends StatefulWidget {
   const ManageVehiclesScreen({super.key});
+
+  @override
+  State<ManageVehiclesScreen> createState() => _ManageVehiclesScreenState();
+}
+
+class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
+  late List<Vehicle> vehicles;
+
+  void handleDeleteVehicle(int id) async {
+    final response = await VehicleService.deleteVehicle(id);
+
+    if (response) {
+      setState(() {
+        vehicles.removeWhere((element) => element.id == id);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +51,11 @@ class ManageVehiclesScreen extends StatelessWidget {
                 future: UserService.getUserById(2),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
+                    vehicles = snapshot.data!.vehicles;
+
                     return ListView.builder(
                       shrinkWrap: true,
-                      itemCount: snapshot.data!.vehicles.length,
+                      itemCount: vehicles.length,
                       itemBuilder: (context, index) {
                         return Column(
                           children: [
@@ -58,14 +79,12 @@ class ManageVehiclesScreen extends StatelessWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              "${snapshot.data!.vehicles[index].brand} ${snapshot.data!.vehicles[index].model}",
+                                              "${vehicles[index].brand} ${vehicles[index].model}",
                                               style: theme.textTheme.labelMedium
                                                   ?.apply(
                                                       color: theme.colorScheme
                                                           .onSurface)),
-                                          Text(
-                                              snapshot.data!.vehicles[index]
-                                                  .licensePlate,
+                                          Text(vehicles[index].licensePlate,
                                               style: theme.textTheme.bodySmall
                                                   ?.apply(
                                                       color: theme.colorScheme
@@ -77,13 +96,16 @@ class ManageVehiclesScreen extends StatelessWidget {
                                         onPressed: () {},
                                         icon: const Icon(Icons.edit_outlined)),
                                     IconButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          handleDeleteVehicle(
+                                              vehicles[index].id);
+                                        },
                                         icon: const Icon(Icons.delete_outlined))
                                   ],
                                 ),
                               ),
                             ),
-                            index == snapshot.data!.vehicles.length - 1
+                            index == vehicles.length - 1
                                 ? Container()
                                 : const SizedBox(height: 16),
                           ],
