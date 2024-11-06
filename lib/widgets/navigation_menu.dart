@@ -56,6 +56,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
           MaterialPageRoute(builder: (context) => const ManageGarageScreen()),
         );
         break;
+      case 5:
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ManageVehiclesScreen()));
       default:
         Scaffold.of(context).closeDrawer();
     }
