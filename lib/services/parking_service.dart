@@ -14,8 +14,13 @@ class ParkingService {
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
 
+      print("DEBUG");
+      print(body);
+
       List<Parking> parkings =
           body.map((dynamic item) => Parking.fromJson(item)).toList();
+
+      print(parkings);
 
       return parkings;
     } else {

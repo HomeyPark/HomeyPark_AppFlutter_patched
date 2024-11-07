@@ -83,7 +83,7 @@ class ParkingDetailScreen extends StatelessWidget {
                                   color: theme.primaryColor,
                                 ),
                                 Text(
-                                  "3 libres",
+                                  "${parking.spaces} libres",
                                   style: TextStyle(
                                       fontSize: 12,
                                       color:
@@ -119,7 +119,7 @@ class ParkingDetailScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "José Mourihno",
+                                      "${parking.user.name} ${parking.user.lastName}",
                                       style: theme.textTheme.labelLarge,
                                     ),
                                     Text(
