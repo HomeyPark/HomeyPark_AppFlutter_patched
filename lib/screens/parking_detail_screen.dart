@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:homey_park/screens/screen.dart';
 import 'package:homey_park/services/parking_service.dart';
 
@@ -10,6 +11,7 @@ class ParkingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -18,6 +20,7 @@ class ParkingDetailScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: FutureBuilder(
             future: ParkingService.getParkingById(parkingId),
@@ -28,8 +31,58 @@ class ParkingDetailScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
+              final latitude = parking!.location.latitude;
+              final longitude = parking.location.longitude;
+              final apiKey = dotenv.env['MAPS_API_KEY'] ?? '';
+
               return Column(
                 children: [
+                  Stack(
+                    children: [
+                      Image.network(
+                        "https://maps.googleapis.com/maps/api/streetview?size=600x400&location=$latitude,$longitude&key=$apiKey",
+                        fit: BoxFit.cover,
+                        height: 240,
+                        width: double.infinity,
+                      ),
+                      Container(
+                        width: double.infinity,
+                        height: 240,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withOpacity(
+                                  0.6), // Bottom color with opacity
+                              Colors.transparent, // Transparent top
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 16,
+                        bottom: 24,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${parking.location.address} ${parking.location.numDirection}",
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "${parking.location.district}, ${parking.location.street}, ${parking.location.city}",
+                              style: theme.textTheme.labelMedium
+                                  ?.copyWith(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(

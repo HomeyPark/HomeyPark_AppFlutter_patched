@@ -1,5 +1,6 @@
 class ParkingLocation {
   final int id;
+  final String address;
   final String district;
   final String city;
   final double latitude;
@@ -9,6 +10,7 @@ class ParkingLocation {
 
   ParkingLocation({
     required this.id,
+    required this.address,
     required this.district,
     required this.city,
     required this.latitude,
@@ -20,6 +22,7 @@ class ParkingLocation {
   factory ParkingLocation.fromJson(Map<String, dynamic> json) {
     return ParkingLocation(
       id: json['id'],
+      address: json['address'],
       district: json['district'],
       city: json['city'],
       latitude: json['latitude'],
@@ -32,6 +35,7 @@ class ParkingLocation {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'address': address,
       'district': district,
       'city': city,
       'latitude': latitude,
