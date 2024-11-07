@@ -34,10 +34,6 @@ class PaymentService{
     }
   }
 
-  static Future<PaymentCard?> putPaymentCard(PaymentCard newCard) async{
-
-  }
-
   static Future<bool> deletePaymentCard(int id) async {
     final response = await http.delete(Uri.parse('$url/delete/$id'));
 

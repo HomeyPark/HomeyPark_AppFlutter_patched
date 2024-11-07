@@ -128,8 +128,43 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                        onPressed: () {},
-                                        icon: const Icon(Icons.edit_outlined)),
+                                      onPressed: () {
+                                        final selectedVehicle = vehicles[index];
+
+                                        licensePlateController.text = selectedVehicle.licensePlate;
+                                        brandController.text = selectedVehicle.brand;
+                                        modelController.text = selectedVehicle.model;
+
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return NewVehicle(
+                                              licenseplate: licensePlateController,
+                                              brand: brandController,
+                                              model: modelController,
+                                              onSave: () async {
+                                                final updatedVehicle = Vehicle(
+                                                  id: selectedVehicle.id,
+                                                  licensePlate: licensePlateController.text,
+                                                  brand: brandController.text,
+                                                  model: modelController.text,
+                                                );
+
+                                                final updatedVehicleResponse = await VehicleService.putVehicle(updatedVehicle);
+
+                                                if (updatedVehicleResponse != null) {
+                                                  setState(() {
+                                                    vehicles[index] = updatedVehicleResponse;
+                                                  });
+                                                  Navigator.pop(context);
+                                                }
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(Icons.edit_outlined),
+                                    ),
                                     IconButton(
                                         onPressed: () {
                                           handleDeleteVehicle(

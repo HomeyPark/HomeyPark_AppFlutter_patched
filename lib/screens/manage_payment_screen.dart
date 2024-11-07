@@ -139,10 +139,6 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
                                       ),
                                     ),
                                     IconButton(
-                                        onPressed: () {},
-                                        icon:
-                                        const Icon(Icons.edit_outlined)),
-                                    IconButton(
                                         onPressed: () {
                                           handleDeleteVehicle(cards[index].id!);
                                         },

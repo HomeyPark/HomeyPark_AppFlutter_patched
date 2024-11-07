@@ -30,6 +30,22 @@ class VehicleService {
       throw Exception('Failed to add payment card');
     }
   }
+  static Future<Vehicle?> putVehicle(Vehicle newVehicle) async {
+    final response = await http.put(
+      Uri.parse('$url/update/${newVehicle.id}'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({...newVehicle.toJson(), "userId": 1}),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return Vehicle.fromJson(data);
+    } else {
+      throw Exception('Failed to update payment card');
+    }
+  }
 
   static Future<bool> deleteVehicle(int id) async {
     final response = await http.delete(Uri.parse('$url/delete/$id'));
