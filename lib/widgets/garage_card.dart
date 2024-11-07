@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:homey_park/model/parking.dart';
 
 class GarageCard extends StatelessWidget {
   final int id;
+  final Parking parking;
   final Function(int) onEdit;
-
   final Function(int) onDelete;
 
-  const GarageCard(
+  final apiKey = dotenv.env['MAPS_API_KEY'] ?? '';
+
+  GarageCard(
       {super.key,
       required this.id,
+      required this.parking,
       required this.onEdit,
       required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final location = parking.location;
 
     return Card(
       color: Colors.white,
@@ -26,17 +33,20 @@ class GarageCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Image.network("https://picsum.photos/250?image=9",
-              fit: BoxFit.cover, height: 180),
+          Image.network(
+              "https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${location.latitude},${location.longitude}&key=$apiKey",
+              fit: BoxFit.cover,
+              height: 180),
           Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Avenida Siempre Viva 123",
+                  Text("${location.address} ${location.numDirection}",
                       style: theme.textTheme.bodyLarge
                           ?.apply(color: theme.colorScheme.onSurface)),
-                  Text("Surquillo, Lima",
+                  Text(
+                      "${location.district}, ${location.street}, ${location.city}",
                       style: theme.textTheme.bodyMedium
                           ?.apply(color: theme.colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 32),

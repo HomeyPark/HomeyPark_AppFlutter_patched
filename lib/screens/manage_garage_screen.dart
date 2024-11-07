@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:homey_park/screens/screen.dart';
+import 'package:homey_park/services/parking_service.dart';
+import 'package:homey_park/services/user_service.dart';
 import 'package:homey_park/widgets/widgets.dart';
 
 class ManageGarageScreen extends StatelessWidget {
@@ -34,28 +36,23 @@ class ManageGarageScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-        children: [
-          GarageCard(
-            id: 1,
-            onDelete: (id) => onDeleteGarage(context, id),
-            onEdit: (id) => onEditGarage(context, id),
-          ),
-          const SizedBox(height: 16),
-          GarageCard(
-            id: 2,
-            onDelete: (id) => onDeleteGarage(context, id),
-            onEdit: (id) => onEditGarage(context, id),
-          ),
-          const SizedBox(height: 16),
-          GarageCard(
-            id: 3,
-            onDelete: (id) => onDeleteGarage(context, id),
-            onEdit: (id) => onEditGarage(context, id),
-          ),
-        ],
-      ),
+      body: FutureBuilder(
+          future: ParkingService.getParkingListByUserId(1),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return const CircularProgressIndicator();
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              children: snapshot.data!.map((parking) {
+                return GarageCard(
+                  id: parking.id,
+                  parking: parking,
+                  onDelete: (id) => onDeleteGarage(context, id),
+                  onEdit: (id) => onEditGarage(context, id),
+                );
+              }).toList(),
+            );
+          }),
       bottomSheet: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

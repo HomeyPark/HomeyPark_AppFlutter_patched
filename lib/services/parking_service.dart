@@ -14,9 +14,6 @@ class ParkingService {
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
 
-      print("DEBUG");
-      print(body);
-
       List<Parking> parkings =
           body.map((dynamic item) => Parking.fromJson(item)).toList();
 
@@ -37,6 +34,23 @@ class ParkingService {
         .cast<ParkingLocation>();
 
     return locations;
+  }
+
+  static Future<List<Parking>> getParkingListByUserId(int id) async {
+    final response = await http.get(Uri.parse('$url/user/$id'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      var parkings =
+          body.map((dynamic item) => Parking.fromJson(item)).toList();
+
+      print("DEBUG PARKINGS BY USER ID");
+      print(parkings);
+
+      return parkings;
+    } else {
+      return [];
+    }
   }
 
   static Future<Parking> getParkingById(int id) async {
