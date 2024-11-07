@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:homey_park/screens/home_screen.dart';
 import 'package:homey_park/widgets/widgets.dart';
+import 'package:homey_park/model/model.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final Parking parking;
+  const CheckoutScreen({super.key, required this.parking});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -13,6 +15,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _dateController = TextEditingController();
   final _startTimeController = TextEditingController();
   final _endTimeController = TextEditingController();
+
+  double totalFare = 0.0;
+  void _calculateTotalFare() {
+    if (_startTimeController.text.isEmpty || _endTimeController.text.isEmpty) {
+      setState(() {
+        totalFare = 0.0;
+      });
+      return;
+    }
+
+    final startTime = TimeOfDay(
+      hour: int.parse(_startTimeController.text.split(":")[0]),
+      minute: int.parse(_startTimeController.text.split(":")[1].split(" ")[0]),
+    );
+
+    final endTime = TimeOfDay(
+      hour: int.parse(_endTimeController.text.split(":")[0]),
+      minute: int.parse(_endTimeController.text.split(":")[1].split(" ")[0]),
+    );
+
+    final startDateTime = DateTime(0, 0, 0, startTime.hour, startTime.minute);
+    final endDateTime = DateTime(0, 0, 0, endTime.hour, endTime.minute);
+
+    final duration = endDateTime.difference(startDateTime).inMinutes;
+    final hours = duration / 60;
+
+    setState(() {
+      totalFare =
+          double.parse((hours * widget.parking.price).toStringAsFixed(2));
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimeController.addListener(_calculateTotalFare);
+    _endTimeController.addListener(_calculateTotalFare);
+  }
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
@@ -192,7 +232,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: theme.textTheme.labelMedium?.apply(
                               color: theme.colorScheme.onSurfaceVariant),
                         ),
-                        Text("S/ 2.25",
+                        Text(
+                            (_startTimeController.text.isEmpty ||
+                                    _endTimeController.text.isEmpty)
+                                ? "---"
+                                : "S/ ${totalFare.toStringAsFixed(2)}",
                             style: theme.textTheme.labelMedium?.apply(
                                 color: theme.colorScheme.onSurfaceVariant))
                       ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:homey_park/model/parking.dart';
 import 'package:homey_park/screens/screen.dart';
 import 'package:homey_park/services/parking_service.dart';
 
@@ -11,6 +12,8 @@ class ParkingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    late Parking parking;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,11 +28,11 @@ class ParkingDetailScreen extends StatelessWidget {
         child: FutureBuilder(
             future: ParkingService.getParkingById(parkingId),
             builder: (context, snapshot) {
-              final parking = snapshot.data;
-
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
+
+              parking = snapshot.data!;
 
               final latitude = parking!.location.latitude;
               final longitude = parking.location.longitude;
@@ -226,7 +229,8 @@ class ParkingDetailScreen extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+              MaterialPageRoute(
+                  builder: (context) => CheckoutScreen(parking: parking)),
             );
           },
           style: ButtonStyle(
