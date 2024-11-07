@@ -6,7 +6,7 @@ import 'package:homey_park/model/parking_location.dart';
 import 'package:http/http.dart' as http;
 
 class ParkingService {
-  static const String url = 'http://192.168.18.70:8080/parking';
+  static const String url = 'http://192.168.1.14:8080/parking';
 
   static Future<List<Parking>> getParkings() async {
     final response = await http.get(Uri.parse(url));
