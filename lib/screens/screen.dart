@@ -5,3 +5,4 @@ export 'reservations_screen.dart';
 export 'manage_garage_screen.dart';
 export 'create_edit_garage_screen.dart';
 export 'manage_vehicles_screen.dart';
+export 'manage_payment_screen.dart';

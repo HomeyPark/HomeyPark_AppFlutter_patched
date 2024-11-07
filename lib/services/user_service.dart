@@ -4,7 +4,7 @@ import 'package:homey_park/model/user.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  static const String url = 'http://192.168.18.70:8080/users';
+  static const String url = 'http://192.168.1.14:8080/users';
 
   static Future<List<User>> getUsers() async {
     final response = await http.get(Uri.parse(url));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:homey_park/model/vehicle.dart';
 import 'package:homey_park/services/user_service.dart';
 import 'package:homey_park/services/vehicle_service.dart';
+import 'package:homey_park/widgets/vehicle_widget.dart';
 
 class ManageVehiclesScreen extends StatefulWidget {
   const ManageVehiclesScreen({super.key});
@@ -12,6 +13,10 @@ class ManageVehiclesScreen extends StatefulWidget {
 
 class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
   late List<Vehicle> vehicles;
+
+  final TextEditingController licensePlateController = TextEditingController();
+  final TextEditingController brandController = TextEditingController();
+  final TextEditingController modelController = TextEditingController();
 
   void handleDeleteVehicle(int id) async {
     final response = await VehicleService.deleteVehicle(id);
@@ -33,7 +38,37 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
           "Vehículos",
           style: theme.textTheme.titleMedium,
         ),
-        actions: [TextButton(onPressed: () {}, child: const Text("Agregar"))],
+        actions: [
+          TextButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return NewVehicle(
+                      licenseplate: licensePlateController,
+                      brand: brandController,
+                      model: modelController,
+                      onSave: () async {
+
+                        final newVehicle = Vehicle(
+                          licensePlate: licensePlateController.text,
+                          brand: brandController.text,
+                          model: modelController.text
+                        );
+
+                        final addedCard = await VehicleService.postVehicle(newVehicle);
+
+                        if (addedCard != null) {
+                          setState(() {
+                            vehicles.add(addedCard);
+                          });
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            child: const Text("Agregar"))],
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.white,
@@ -48,7 +83,7 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
             ),
             const SizedBox(height: 16),
             FutureBuilder(
-                future: UserService.getUserById(2),
+                future: UserService.getUserById(1),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     vehicles = snapshot.data!.vehicles;
@@ -98,7 +133,7 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
                                     IconButton(
                                         onPressed: () {
                                           handleDeleteVehicle(
-                                              vehicles[index].id);
+                                              vehicles[index].id!);
                                         },
                                         icon: const Icon(Icons.delete_outlined))
                                   ],

@@ -1,3 +1,4 @@
+import 'package:homey_park/model/card.dart';
 import 'package:homey_park/model/vehicle.dart';
 
 class User {
@@ -7,6 +8,7 @@ class User {
   String email;
   String password;
   List<Vehicle> vehicles;
+  List<PaymentCard> cards;
 
   User(
       {required this.id,
@@ -14,7 +16,8 @@ class User {
       required this.lastName,
       required this.email,
       required this.password,
-      required this.vehicles});
+      required this.vehicles,
+      required this.cards});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -26,6 +29,9 @@ class User {
       vehicles: (json['vehicles'] as List)
           .map((vehicle) => Vehicle.fromJson(vehicle))
           .toList(),
+      cards: (json['cards'] as List)
+            .map((card) => PaymentCard.fromJson(card))
+            .toList()
     );
   }
 }
