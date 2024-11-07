@@ -62,4 +62,49 @@ class ParkingService {
       throw Exception('Failed to load parking');
     }
   }
+
+  static Future<Parking> createParking(
+      {required double width,
+      required int userId,
+      required double length,
+      required double height,
+      required double price,
+      String phone = '',
+      required int space,
+      required String description,
+      required String address,
+      required String numDirection,
+      required String street,
+      required String district,
+      required String city,
+      required double latitude,
+      required double longitude}) async {
+    final response = await http.post(Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'width': width,
+          'length': length,
+          'height': height,
+          'price': price,
+          'phone': phone,
+          'space': space,
+          'description': description,
+          'address': address,
+          'numDirection': numDirection,
+          'street': street,
+          'district': district,
+          'city': city,
+          'latitude': latitude,
+          'longitude': longitude,
+          'userId': userId
+        }));
+
+    if (response.statusCode == 200) {
+      return Parking.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load parking');
+    }
+  }
 }

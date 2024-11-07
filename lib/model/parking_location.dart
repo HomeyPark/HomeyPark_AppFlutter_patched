@@ -1,5 +1,5 @@
 class ParkingLocation {
-  final int id;
+  final int? id;
   final String address;
   final String district;
   final String city;
@@ -9,7 +9,7 @@ class ParkingLocation {
   final String street;
 
   ParkingLocation({
-    required this.id,
+    this.id,
     required this.address,
     required this.district,
     required this.city,
@@ -33,6 +33,7 @@ class ParkingLocation {
   }
 
   Map<String, dynamic> toJson() {
+    dynamic name = {'name': 'String'};
     return {
       'id': id,
       'address': address,
@@ -42,6 +43,7 @@ class ParkingLocation {
       'longitude': longitude,
       'numDirection': numDirection,
       'street': street,
+      ...name
     };
   }
 }

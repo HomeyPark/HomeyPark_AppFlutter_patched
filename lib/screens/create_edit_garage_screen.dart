@@ -3,16 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:homey_park/config/constants/constants.dart';
+import 'package:homey_park/model/model.dart';
+import 'package:homey_park/model/parking_location.dart';
+import 'package:homey_park/screens/manage_garage_screen.dart';
+import 'package:homey_park/services/external_google_places_service.dart';
+import 'package:homey_park/services/parking_service.dart';
 import 'package:homey_park/utils/user_location.dart';
 
 class CreateEditGarageScreen extends StatefulWidget {
   final int? id;
 
+  final Function(Parking) onSave;
+
   // ignore: non_constant_identifier_names
   final DEFAULT_CENTER =
       const LatLng(DEFAULT_POSITION_MAP_LAT, DEFAULT_POSITION_MAP_LNG);
 
-  const CreateEditGarageScreen({super.key, this.id});
+  const CreateEditGarageScreen({super.key, this.id, required this.onSave});
 
   @override
   State<CreateEditGarageScreen> createState() => _CreateEditGarageScreenState();
@@ -22,7 +29,15 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
   late final bool editMode;
   late GoogleMapController mapController;
   final Completer<GoogleMapController> _controllerCompleter = Completer();
+  final searchQueryFieldController = TextEditingController();
+  ParkingLocation? _tempParkingLocation;
   LatLng? _center;
+
+  final descriptionFieldController = TextEditingController();
+  final spacesFieldController = TextEditingController();
+  final heightFieldController = TextEditingController();
+  final lengthFieldController = TextEditingController();
+  final widthFieldController = TextEditingController();
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -44,7 +59,67 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
     }
   }
 
-  void onSave() {}
+  void onSearchParkingLocationByQuery() async {
+    final query = searchQueryFieldController.text;
+    if (query.isEmpty) return;
+
+    try {
+      final location =
+          await ExternalGooglePlacesService.getParkingLocationByQuery(query);
+
+      setState(() {
+        _center = LatLng(location.latitude, location.longitude);
+        _tempParkingLocation = location;
+      });
+
+      final controller = await _controllerCompleter.future;
+      controller.animateCamera(CameraUpdate.newLatLng(_center!));
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void onSave() async {
+    print(_tempParkingLocation);
+
+    if (_tempParkingLocation == null) return;
+
+    try {
+      final description = descriptionFieldController.text;
+      final spaces = int.parse(spacesFieldController.text);
+      final height = double.parse(heightFieldController.text);
+      final length = double.parse(lengthFieldController.text);
+      final width = double.parse(widthFieldController.text);
+
+      final parking = await ParkingService.createParking(
+          userId: 1,
+          width: width,
+          length: length,
+          height: height,
+          space: spaces,
+          description: description,
+          address: _tempParkingLocation!.address,
+          numDirection: _tempParkingLocation!.numDirection,
+          street: _tempParkingLocation!.street,
+          district: _tempParkingLocation!.district,
+          city: _tempParkingLocation!.city,
+          latitude: _center!.latitude,
+          price: 2.5,
+          longitude: _center!.longitude);
+
+      print(parking);
+
+      widget.onSave(parking);
+
+      Navigator.pop(context);
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const ManageGarageScreen()),
+      // );
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   void initState() {
@@ -76,13 +151,16 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   style: theme.textTheme.titleMedium
                       ?.copyWith(color: theme.colorScheme.onSurface)),
               const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
-                  label: Text("Dirección"),
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              TextField(
+                  controller: searchQueryFieldController,
+                  decoration: InputDecoration(
+                    label: const Text("Dirección"),
+                    alignLabelWithHint: true,
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                        onPressed: onSearchParkingLocationByQuery,
+                        icon: const Icon(Icons.search, color: Colors.black)),
+                  )),
               const SizedBox(height: 16),
               Card(
                 clipBehavior: Clip.antiAlias,
@@ -99,15 +177,23 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                     zoomControlsEnabled: false,
                     markers: {
                       Marker(
-                          markerId: const MarkerId("1"),
-                          position: _center ?? widget.DEFAULT_CENTER,
-                          onTap: () {},
-                          infoWindow: const InfoWindow(
-                              title: "UPC",
-                              snippet:
-                                  "Universidad Peruana de Ciencias Aplicadas")),
+                        markerId: const MarkerId("1"),
+                        position: _center ?? widget.DEFAULT_CENTER,
+                      )
                     },
                   ),
+                ),
+              ),
+              const Divider(height: 56),
+              Text("Descripción",
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(color: theme.colorScheme.onSurface)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: descriptionFieldController,
+                decoration: const InputDecoration(
+                  alignLabelWithHint: true,
+                  border: OutlineInputBorder(),
                 ),
               ),
               const Divider(height: 56),
@@ -115,39 +201,43 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   style: theme.textTheme.titleMedium
                       ?.copyWith(color: theme.colorScheme.onSurface)),
               const SizedBox(height: 16),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: spacesFieldController,
+                decoration: const InputDecoration(
                   label: Text("Espacios disponibles"),
                   alignLabelWithHint: true,
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: TextField(
-                      decoration: InputDecoration(
+                      controller: heightFieldController,
+                      decoration: const InputDecoration(
                         label: Text("Altura"),
                         alignLabelWithHint: true,
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
-                      decoration: InputDecoration(
+                      controller: lengthFieldController,
+                      decoration: const InputDecoration(
                         label: Text("Longitud"),
                         alignLabelWithHint: true,
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
-                      decoration: InputDecoration(
+                      controller: widthFieldController,
+                      decoration: const InputDecoration(
                         label: Text("Ancho"),
                         alignLabelWithHint: true,
                         border: OutlineInputBorder(),
@@ -156,135 +246,21 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 56),
-              Text("Horario",
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(color: theme.colorScheme.onSurface)),
-              Chip(
-                padding: const EdgeInsets.all(4),
-                label: IntrinsicWidth(
-                  child: Row(
-                    children: [
-                      Text("Lunes 11:00 AM - 09:00 PM",
-                          style: theme.textTheme.bodySmall
-                              ?.apply(color: theme.colorScheme.onSurface)),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.cancel_outlined,
-                            color: theme.colorScheme.error),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.edit_outlined,
-                            color: theme.colorScheme.tertiary),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-                backgroundColor: Colors.white,
-              ),
-              Chip(
-                padding: const EdgeInsets.all(4),
-                label: IntrinsicWidth(
-                  child: Row(
-                    children: [
-                      Text("Lunes 11:00 AM - 09:00 PM",
-                          style: theme.textTheme.bodySmall
-                              ?.apply(color: theme.colorScheme.onSurface)),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.cancel_outlined,
-                            color: theme.colorScheme.error),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.edit_outlined,
-                            color: theme.colorScheme.tertiary),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-                backgroundColor: Colors.white,
-              ),
-              Chip(
-                padding: const EdgeInsets.all(4),
-                label: IntrinsicWidth(
-                  child: Row(
-                    children: [
-                      Text("Lunes 11:00 AM - 09:00 PM",
-                          style: theme.textTheme.bodySmall
-                              ?.apply(color: theme.colorScheme.onSurface)),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.cancel_outlined,
-                            color: theme.colorScheme.error),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          minimumSize:
-                              WidgetStateProperty.all(const Size(24, 24)),
-                        ),
-                        icon: Icon(Icons.edit_outlined,
-                            color: theme.colorScheme.tertiary),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-                backgroundColor: Colors.white,
-              ),
-              OutlinedButton.icon(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    minimumSize: const Size(double.infinity, 40),
-                  ),
-                  label: const Text("Agregar horario"),
-                  icon: const Icon(Icons.schedule_outlined)),
+              // const Divider(height: 56),
+              // OutlinedButton.icon(
+              //     onPressed: () {},
+              //     style: OutlinedButton.styleFrom(
+              //       shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(8)),
+              //       minimumSize: const Size(double.infinity, 40),
+              //     ),
+              //     label: const Text("Agregar horario"),
+              //     icon: const Icon(Icons.schedule_outlined)),
             ],
           )),
       persistentFooterButtons: [
         FilledButton(
-          onPressed: () => {},
+          onPressed: onSave,
           style: ButtonStyle(
               shape: WidgetStateProperty.all(
                 RoundedRectangleBorder(

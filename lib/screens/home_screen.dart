@@ -47,11 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  navigateToParkingDetailScreen(int parkingId) {
+  navigateToParkingDetailScreen(int? parkingId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => ParkingDetailScreen(parkingId: parkingId)),
+          builder: (context) => ParkingDetailScreen(parkingId: parkingId!)),
     );
   }
 

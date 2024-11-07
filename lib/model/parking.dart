@@ -7,6 +7,10 @@ class Parking {
   final int spaces;
   final double price;
   final String description;
+  final int space;
+  final double width;
+  final double height;
+  final double length;
   final User user;
 
   Parking(
@@ -15,7 +19,11 @@ class Parking {
       required this.price,
       required this.description,
       required this.user,
-      required this.spaces});
+      required this.spaces,
+      required this.height,
+      required this.length,
+      required this.width,
+      required this.space});
 
   factory Parking.fromJson(Map<String, dynamic> json) {
     return Parking(
@@ -24,6 +32,10 @@ class Parking {
         price: json['price'],
         description: json['description'],
         user: User.fromJson(json['user']),
-        spaces: json['space']);
+        spaces: json['space'],
+        height: json['height'],
+        length: json['length'],
+        width: json['width'],
+        space: json['space']);
   }
 }
