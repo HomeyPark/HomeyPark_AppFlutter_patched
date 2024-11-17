@@ -17,3 +17,15 @@ String statusText(ReservationStatus status) {
 
   return statusText[status]!;
 }
+
+ReservationStatus statusFromJson(String status) {
+  const Map<String, ReservationStatus> statusMap = {
+    "Cancelled": ReservationStatus.cancelled,
+    "InProgress": ReservationStatus.inProgress,
+    "Approved": ReservationStatus.approved,
+    "Pending": ReservationStatus.pending,
+    "Completed": ReservationStatus.completed,
+  };
+
+  return statusMap[status]!;
+}

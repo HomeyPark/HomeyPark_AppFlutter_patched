@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 import 'package:homey_park/model/model.dart';
+import 'package:homey_park/model/reservation.dart';
 import 'package:homey_park/screens/reservation_detail_screen.dart';
+import 'package:homey_park/services/parking_service.dart';
+import 'package:homey_park/services/reservation_service.dart';
 import 'package:homey_park/widgets/widgets.dart';
 
 class ReservationsScreen extends StatefulWidget {
@@ -11,11 +15,57 @@ class ReservationsScreen extends StatefulWidget {
 }
 
 class _ReservationsScreenState extends State<ReservationsScreen> {
+  var _loading = true;
+  var _reservationsList = <Reservation>[];
+
+  var _incomingReservationsList = <Reservation>[];
+  var _pastReservationsList = <Reservation>[];
+  var _inProgressReservationList = <Reservation>[];
+
   void onTapReservation(int id) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ReservationDetailScreen()),
+      MaterialPageRoute(builder: (context) => ReservationDetailScreen(id: id)),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _loading = true;
+    });
+    _loadHostReservations();
+  }
+
+  void _loadHostReservations() async {
+    final reservations =
+        await ReservationService.getReservationsByGuestId(preferences.userId);
+
+    final incomingReservations = reservations
+        .where((reservation) =>
+            reservation.status == ReservationStatus.pending ||
+            reservation.status == ReservationStatus.approved)
+        .toList();
+
+    final pastReservations = reservations
+        .where((reservation) =>
+            reservation.status == ReservationStatus.completed ||
+            reservation.status == ReservationStatus.cancelled)
+        .toList();
+
+    final inProgressReservations = reservations
+        .where(
+            (reservation) => reservation.status == ReservationStatus.inProgress)
+        .toList();
+
+    setState(() {
+      _reservationsList = reservations;
+      _incomingReservationsList = incomingReservations;
+      _pastReservationsList = pastReservations;
+      _inProgressReservationList = inProgressReservations;
+      _loading = false;
+    });
   }
 
   @override
@@ -23,7 +73,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     final theme = Theme.of(context);
 
     return DefaultTabController(
-      initialIndex: 1,
+      initialIndex: 0,
       length: 3,
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -40,51 +90,82 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           ]),
         ),
         body: TabBarView(children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                ReservationCard(
-                    id: 1,
-                    status: ReservationStatus.inProgress,
-                    address: "Avenida Siempre Viva",
-                    number: "123",
-                    date: DateTime.now(),
-                    startTime: const TimeOfDay(hour: 3, minute: 0),
-                    endTime: const TimeOfDay(hour: 3, minute: 30),
-                    onTapReservation: onTapReservation),
-                ReservationCard(
-                  id: 2,
-                  status: ReservationStatus.approved,
-                  address: "Avenida Siempre Viva",
-                  number: "123",
-                  date: DateTime.now(),
-                  startTime: const TimeOfDay(hour: 3, minute: 0),
-                  endTime: const TimeOfDay(hour: 3, minute: 30),
-                  onTapReservation: onTapReservation,
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      ..._inProgressReservationList.map((reservation) {
+                        return ReservationCard(
+                          id: reservation.id,
+                          status: reservation.status,
+                          address: "Avenida Siempre Viva",
+                          number: "123",
+                          date: reservation.startTime,
+                          startTime:
+                              TimeOfDay.fromDateTime(reservation.startTime),
+                          endTime: TimeOfDay.fromDateTime(reservation.endTime),
+                          onTapReservation: onTapReservation,
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-                ReservationCard(
-                  id: 3,
-                  status: ReservationStatus.completed,
-                  address: "Avenida Siempre Viva",
-                  number: "123",
-                  date: DateTime.now(),
-                  startTime: const TimeOfDay(hour: 3, minute: 0),
-                  endTime: const TimeOfDay(hour: 3, minute: 30),
-                  onTapReservation: onTapReservation,
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      ..._incomingReservationsList.map((reservation) {
+                        return ReservationCard(
+                          id: reservation.id,
+                          status: reservation.status,
+                          address: "Avenida Siempre Viva",
+                          number: "123",
+                          date: reservation.startTime,
+                          startTime:
+                              TimeOfDay.fromDateTime(reservation.startTime),
+                          endTime: TimeOfDay.fromDateTime(reservation.endTime),
+                          onTapReservation: onTapReservation,
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-          const Center(
-            child: Text("It's cloudy here"),
-          ),
-          const Center(
-            child: Text("It's rainy here"),
-          ),
-          const Center(
-            child: Text("It's sunny here"),
-          ),
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      ..._pastReservationsList.map((reservation) {
+                        return FutureBuilder(
+                            future: ParkingService.getParkingById(
+                                reservation.parkingId),
+                            builder: (context, snapshot) {
+                              if (snapshot.data == null) {
+                                return const SizedBox();
+                              }
+
+                              return ReservationCard(
+                                id: reservation.id,
+                                status: reservation.status,
+                                address: snapshot.data!.location.address,
+                                number: snapshot.data!.location.numDirection,
+                                date: reservation.startTime,
+                                startTime: TimeOfDay.fromDateTime(
+                                    reservation.startTime),
+                                endTime:
+                                    TimeOfDay.fromDateTime(reservation.endTime),
+                                onTapReservation: onTapReservation,
+                              );
+                            });
+                      }),
+                    ],
+                  ),
+                ),
         ]),
       ),
     );
