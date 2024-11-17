@@ -31,4 +31,15 @@ class UserService {
       throw Exception('Failed to load parking');
     }
   }
+
+  static Future<User> login(String email, String password) async {
+    final response =
+        await http.get(Uri.parse('$url/login?email=$email&password=$password'));
+
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to login');
+    }
+  }
 }

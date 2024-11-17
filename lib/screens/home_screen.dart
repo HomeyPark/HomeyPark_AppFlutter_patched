@@ -64,8 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
         key: _scaffoldKey,
         drawer: const NavigationMenu(),

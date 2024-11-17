@@ -120,7 +120,7 @@ class ParkingDetailScreen extends StatelessWidget {
                                   color: theme.primaryColor,
                                 ),
                                 Text(
-                                  "S/ ${parking!.price.toStringAsFixed(2)}",
+                                  "S/ ${parking.price.toStringAsFixed(2)}",
                                   style: TextStyle(
                                       fontSize: 12,
                                       color:

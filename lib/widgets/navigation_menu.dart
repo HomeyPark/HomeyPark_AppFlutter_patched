@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 import 'package:homey_park/screens/screen.dart';
 
 class NavigationMenu extends StatefulWidget {
@@ -67,6 +68,13 @@ class _NavigationMenuState extends State<NavigationMenu> {
             context,
             MaterialPageRoute(
                 builder: (context) => const ManagePaymentScreen()));
+        break;
+      case 7:
+        preferences.deleteUserId();
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()));
+        break;
+
       default:
         Scaffold.of(context).closeDrawer();
     }
