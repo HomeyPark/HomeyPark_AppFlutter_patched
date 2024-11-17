@@ -6,6 +6,18 @@ import 'package:http/http.dart' as http;
 class ReservationService extends BaseService {
   static final String baseUrl = "${BaseService.baseUrl}/reservations";
 
+  static Future<Reservation> getReservationById(int id) async {
+    final response = await http.get(Uri.parse('$baseUrl/$id'));
+
+    if (response.statusCode == 200) {
+      dynamic body = jsonDecode(response.body);
+
+      return Reservation.fromJson(body);
+    } else {
+      throw Exception('Failed to load reservation');
+    }
+  }
+
   static Future<List<Reservation>> getReservationsByHostId(int id) async {
     final response = await http.get(Uri.parse('$baseUrl/host/$id'));
 
@@ -20,18 +32,6 @@ class ReservationService extends BaseService {
       return reservations;
     } else {
       return [];
-    }
-  }
-
-  static Future<Reservation> getReservationById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/$id'));
-
-    if (response.statusCode == 200) {
-      dynamic body = jsonDecode(response.body);
-
-      return Reservation.fromJson(body);
-    } else {
-      throw Exception('Failed to load reservation');
     }
   }
 

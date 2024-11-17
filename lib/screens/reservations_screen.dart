@@ -35,12 +35,12 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     setState(() {
       _loading = true;
     });
-    _loadHostReservations();
+    _loadGuestReservations();
   }
 
-  void _loadHostReservations() async {
-    final reservations =
-        await ReservationService.getReservationsByGuestId(preferences.userId);
+  void _loadGuestReservations() async {
+    final reservations = await ReservationService.getReservationsByGuestId(
+        await preferences.getUserId());
 
     final incomingReservations = reservations
         .where((reservation) =>
@@ -97,17 +97,27 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   child: Column(
                     children: [
                       ..._inProgressReservationList.map((reservation) {
-                        return ReservationCard(
-                          id: reservation.id,
-                          status: reservation.status,
-                          address: "Avenida Siempre Viva",
-                          number: "123",
-                          date: reservation.startTime,
-                          startTime:
-                              TimeOfDay.fromDateTime(reservation.startTime),
-                          endTime: TimeOfDay.fromDateTime(reservation.endTime),
-                          onTapReservation: onTapReservation,
-                        );
+                        return FutureBuilder(
+                            future: ParkingService.getParkingById(
+                                reservation.parkingId),
+                            builder: (context, snapshot) {
+                              if (snapshot.data == null) {
+                                return const SizedBox();
+                              }
+
+                              return ReservationCard(
+                                id: reservation.id,
+                                status: reservation.status,
+                                address: snapshot.data!.location.address,
+                                number: snapshot.data!.location.numDirection,
+                                date: reservation.startTime,
+                                startTime: TimeOfDay.fromDateTime(
+                                    reservation.startTime),
+                                endTime:
+                                    TimeOfDay.fromDateTime(reservation.endTime),
+                                onTapReservation: onTapReservation,
+                              );
+                            });
                       }),
                     ],
                   ),
@@ -119,17 +129,27 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   child: Column(
                     children: [
                       ..._incomingReservationsList.map((reservation) {
-                        return ReservationCard(
-                          id: reservation.id,
-                          status: reservation.status,
-                          address: "Avenida Siempre Viva",
-                          number: "123",
-                          date: reservation.startTime,
-                          startTime:
-                              TimeOfDay.fromDateTime(reservation.startTime),
-                          endTime: TimeOfDay.fromDateTime(reservation.endTime),
-                          onTapReservation: onTapReservation,
-                        );
+                        return FutureBuilder(
+                            future: ParkingService.getParkingById(
+                                reservation.parkingId),
+                            builder: (context, snapshot) {
+                              if (snapshot.data == null) {
+                                return const SizedBox();
+                              }
+
+                              return ReservationCard(
+                                id: reservation.id,
+                                status: reservation.status,
+                                address: snapshot.data!.location.address,
+                                number: snapshot.data!.location.numDirection,
+                                date: reservation.startTime,
+                                startTime: TimeOfDay.fromDateTime(
+                                    reservation.startTime),
+                                endTime:
+                                    TimeOfDay.fromDateTime(reservation.endTime),
+                                onTapReservation: onTapReservation,
+                              );
+                            });
                       }),
                     ],
                   ),

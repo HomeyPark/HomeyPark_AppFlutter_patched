@@ -19,8 +19,8 @@ class Preferences {
     await _preferences?.setInt("userId", id);
   }
 
-  Future<int?> getUserId() async {
-    return _preferences?.getInt("userId");
+  Future<int> getUserId() async {
+    return _preferences?.getInt("userId") ?? 0;
   }
 
   Future<void> deleteUserId() async {

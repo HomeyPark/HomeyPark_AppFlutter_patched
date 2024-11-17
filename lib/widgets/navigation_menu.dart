@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homey_park/config/pref/preferences.dart';
+import 'package:homey_park/screens/host_reservations_screen.dart';
 import 'package:homey_park/screens/screen.dart';
 
 class NavigationMenu extends StatefulWidget {
@@ -55,6 +56,13 @@ class _NavigationMenuState extends State<NavigationMenu> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ManageGarageScreen()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const HostReservationsScreen()),
         );
         break;
       case 5:

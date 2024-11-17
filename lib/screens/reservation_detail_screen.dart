@@ -4,9 +4,9 @@ import 'package:homey_park/services/reservation_service.dart';
 import 'package:homey_park/widgets/widgets.dart';
 
 class ReservationDetailScreen extends StatefulWidget {
-  int id;
+  final int id;
 
-  ReservationDetailScreen({super.key, required this.id});
+  const ReservationDetailScreen({super.key, required this.id});
 
   @override
   State<ReservationDetailScreen> createState() =>
