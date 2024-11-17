@@ -34,7 +34,7 @@ class ParkingDetailScreen extends StatelessWidget {
 
               parking = snapshot.data!;
 
-              final latitude = parking!.location.latitude;
+              final latitude = parking.location.latitude;
               final longitude = parking.location.longitude;
               final apiKey = dotenv.env['MAPS_API_KEY'] ?? '';
 

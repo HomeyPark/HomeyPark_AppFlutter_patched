@@ -7,6 +7,7 @@ import 'package:homey_park/screens/screen.dart';
 import 'package:homey_park/services/parking_service.dart';
 import 'package:homey_park/utils/user_location.dart';
 import 'package:homey_park/widgets/navigation_menu.dart';
+import 'package:homey_park/widgets/nearby_parking_sheet.dart';
 
 // ignore: constant_identifier_names
 const DEFAULT_CENTER =
@@ -66,51 +67,82 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
         key: _scaffoldKey,
         drawer: const NavigationMenu(),
-        body: FutureBuilder(
-            future: ParkingService.getParkingsLocations(),
-            builder: (context, snapshot) {
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                        target: _center ?? DEFAULT_CENTER, zoom: 16.0),
-                    zoomControlsEnabled: false,
-                    markers: snapshot.hasData
-                        ? snapshot.data!
-                            .map((location) => Marker(
-                                  markerId: MarkerId(location.id.toString()),
-                                  position: LatLng(
-                                      location.latitude, location.longitude),
-                                  onTap: () => navigateToParkingDetailScreen(
-                                      location.id),
-                                ))
-                            .toSet()
-                        : {},
+        body: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            FutureBuilder(
+                future: ParkingService.getParkingsLocations(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  return GoogleMap(
+                      onMapCreated: _onMapCreated,
+                      initialCameraPosition: CameraPosition(
+                          target: _center ?? DEFAULT_CENTER, zoom: 16.0),
+                      zoomControlsEnabled: false,
+                      markers: snapshot.hasData
+                          ? {
+                              ...snapshot.data!.map((location) => Marker(
+                                    markerId: MarkerId(location.id.toString()),
+                                    position: LatLng(
+                                        location.latitude, location.longitude),
+                                    onTap: () => navigateToParkingDetailScreen(
+                                        location.id),
+                                  )),
+                              Marker(
+                                markerId: const MarkerId('current'),
+                                position: _center!,
+                                icon: BitmapDescriptor.defaultMarkerWithHue(
+                                    BitmapDescriptor.hueGreen),
+                              )
+                            }
+                          : {});
+                }),
+            Positioned(
+              top: 40,
+              left: 15,
+              right: 15,
+              child: SearchBar(
+                controller: searchQueryFieldController,
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    _scaffoldKey.currentState?.openDrawer();
+                  },
+                ),
+                trailing: [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {},
                   ),
-                  Positioned(
-                    top: 40,
-                    left: 15,
-                    right: 15,
-                    child: SearchBar(
-                      controller: searchQueryFieldController,
-                      leading: IconButton(
-                        icon: const Icon(Icons.menu),
-                        onPressed: () {
-                          _scaffoldKey.currentState?.openDrawer();
-                        },
-                      ),
-                      trailing: [
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {},
-                        ),
-                      ],
-                    ),
-                  )
                 ],
-              );
-            }));
+              ),
+            ),
+            FutureBuilder(
+                future: ParkingService.getNearbyParkings(
+                    _center!.latitude, _center!.longitude),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    return NearbyParkingSheet(
+                      parkings: snapshot.data ?? [],
+                      onTapParking: (parking) =>
+                          navigateToParkingDetailScreen(parking.id),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                })
+          ],
+        ));
   }
 }

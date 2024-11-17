@@ -7,10 +7,26 @@ import 'package:homey_park/services/base_service.dart';
 import 'package:http/http.dart' as http;
 
 class ParkingService extends BaseService {
-  static final String url = "${BaseService.baseUrl}/parking";
+  static final String baseUrl = "${BaseService.baseUrl}/parking";
 
   static Future<List<Parking>> getParkings() async {
-    final response = await http.get(Uri.parse(url));
+    final response = await http.get(Uri.parse(baseUrl));
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+
+      List<Parking> parkings =
+          body.map((dynamic item) => Parking.fromJson(item)).toList();
+
+      return parkings;
+    } else {
+      return [];
+    }
+  }
+
+  static Future<List<Parking>> getNearbyParkings(double lat, double lng) async {
+    final response =
+        await http.get(Uri.parse("$baseUrl/nearby?lat=$lat&lng=$lng"));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -36,7 +52,7 @@ class ParkingService extends BaseService {
   }
 
   static Future<List<Parking>> getParkingListByUserId(int id) async {
-    final response = await http.get(Uri.parse('$url/user/$id'));
+    final response = await http.get(Uri.parse('$baseUrl/user/$id'));
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -50,7 +66,7 @@ class ParkingService extends BaseService {
   }
 
   static Future<Parking> getParkingById(int id) async {
-    final response = await http.get(Uri.parse('$url/$id/details'));
+    final response = await http.get(Uri.parse('$baseUrl/$id/details'));
 
     if (response.statusCode == 200) {
       return Parking.fromJson(jsonDecode(response.body));
@@ -75,7 +91,7 @@ class ParkingService extends BaseService {
       required String city,
       required double latitude,
       required double longitude}) async {
-    final response = await http.post(Uri.parse(url),
+    final response = await http.post(Uri.parse(baseUrl),
         headers: {
           'Content-Type': 'application/json',
         },
