@@ -3,10 +3,11 @@ import 'dart:convert';
 // import 'package:homey_park/model/parking_location.dart';
 import 'package:homey_park/model/parking.dart';
 import 'package:homey_park/model/parking_location.dart';
+import 'package:homey_park/services/base_service.dart';
 import 'package:http/http.dart' as http;
 
-class ParkingService {
-  static const String url = 'http://192.168.1.14:8080/parking';
+class ParkingService extends BaseService {
+  static final String url = "${BaseService.baseUrl}/parking";
 
   static Future<List<Parking>> getParkings() async {
     final response = await http.get(Uri.parse(url));
@@ -16,8 +17,6 @@ class ParkingService {
 
       List<Parking> parkings =
           body.map((dynamic item) => Parking.fromJson(item)).toList();
-
-      print(parkings);
 
       return parkings;
     } else {
@@ -43,9 +42,6 @@ class ParkingService {
       List<dynamic> body = jsonDecode(response.body);
       var parkings =
           body.map((dynamic item) => Parking.fromJson(item)).toList();
-
-      print("DEBUG PARKINGS BY USER ID");
-      print(parkings);
 
       return parkings;
     } else {

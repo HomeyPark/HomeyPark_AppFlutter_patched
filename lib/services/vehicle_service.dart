@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:homey_park/services/base_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:homey_park/model/vehicle.dart';
 
 class VehicleService {
-  static const String url = 'http://192.168.1.14:8080/vehicles';
+  static final String url = "${BaseService.baseUrl}/vehicles";
 
   static Future<Vehicle> getVehicleById(int id) async {
     final response = await http.get(Uri.parse('$url/$id'));
@@ -14,13 +15,14 @@ class VehicleService {
       throw Exception('Failed to load vehicle');
     }
   }
+
   static Future<Vehicle?> postVehicle(Vehicle newVehicle) async {
     final response = await http.post(
       Uri.parse('$url/create'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode({...newVehicle.toJson(),"userId": 1}),
+      body: jsonEncode({...newVehicle.toJson(), "userId": 1}),
     );
 
     if (response.statusCode == 201) {
@@ -30,6 +32,7 @@ class VehicleService {
       throw Exception('Failed to add payment card');
     }
   }
+
   static Future<Vehicle?> putVehicle(Vehicle newVehicle) async {
     final response = await http.put(
       Uri.parse('$url/update/${newVehicle.id}'),
