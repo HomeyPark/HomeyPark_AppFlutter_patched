@@ -64,6 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
         key: _scaffoldKey,
         drawer: const NavigationMenu(),
@@ -107,7 +109,11 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 15,
               right: 15,
               child: SearchBar(
+                hintText: "Buscar por nombre o dirección",
                 controller: searchQueryFieldController,
+                backgroundColor: const WidgetStatePropertyAll(Colors.white),
+                shape: const WidgetStatePropertyAll(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)))),
                 leading: IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {

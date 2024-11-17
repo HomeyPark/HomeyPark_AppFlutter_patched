@@ -113,10 +113,32 @@ class ParkingService extends BaseService {
           'userId': userId
         }));
 
+    if (response.statusCode == 201) {
+      return Parking.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to create parking');
+    }
+  }
+
+  static Future<Parking> updateParking(int id, dynamic parking) async {
+    final response = await http.put(Uri.parse('$baseUrl/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(parking));
+
     if (response.statusCode == 200) {
       return Parking.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load parking');
+      throw Exception('Failed to update parking');
+    }
+  }
+
+  static Future<void> deleteParking(int id) async {
+    final response = await http.delete(Uri.parse('$baseUrl/delete/$id'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete parking');
     }
   }
 }

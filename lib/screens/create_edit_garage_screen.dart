@@ -5,21 +5,19 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:homey_park/config/constants/constants.dart';
 import 'package:homey_park/model/model.dart';
 import 'package:homey_park/model/parking_location.dart';
-import 'package:homey_park/screens/manage_garage_screen.dart';
 import 'package:homey_park/services/external_google_places_service.dart';
 import 'package:homey_park/services/parking_service.dart';
 import 'package:homey_park/utils/user_location.dart';
 
 class CreateEditGarageScreen extends StatefulWidget {
   final int? id;
-
-  final Function(Parking) onSave;
+  final Parking? parking;
 
   // ignore: non_constant_identifier_names
   final DEFAULT_CENTER =
       const LatLng(DEFAULT_POSITION_MAP_LAT, DEFAULT_POSITION_MAP_LNG);
 
-  const CreateEditGarageScreen({super.key, this.id, required this.onSave});
+  const CreateEditGarageScreen({super.key, this.id, this.parking});
 
   @override
   State<CreateEditGarageScreen> createState() => _CreateEditGarageScreenState();
@@ -29,15 +27,15 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
   late final bool editMode;
   late GoogleMapController mapController;
   final Completer<GoogleMapController> _controllerCompleter = Completer();
-  final searchQueryFieldController = TextEditingController();
   ParkingLocation? _tempParkingLocation;
   LatLng? _center;
 
-  final descriptionFieldController = TextEditingController();
-  final spacesFieldController = TextEditingController();
-  final heightFieldController = TextEditingController();
-  final lengthFieldController = TextEditingController();
-  final widthFieldController = TextEditingController();
+  late TextEditingController searchQueryFieldController;
+  late TextEditingController descriptionFieldController;
+  late TextEditingController spacesFieldController;
+  late TextEditingController heightFieldController;
+  late TextEditingController lengthFieldController;
+  late TextEditingController widthFieldController;
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -80,52 +78,100 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
   }
 
   void onSave() async {
-    print(_tempParkingLocation);
-
-    if (_tempParkingLocation == null) return;
-
     try {
-      final description = descriptionFieldController.text;
-      final spaces = int.parse(spacesFieldController.text);
-      final height = double.parse(heightFieldController.text);
-      final length = double.parse(lengthFieldController.text);
-      final width = double.parse(widthFieldController.text);
+      final parking = editMode ? await onEdit() : await onAdd();
 
-      final parking = await ParkingService.createParking(
-          userId: 1,
-          width: width,
-          length: length,
-          height: height,
-          space: spaces,
-          description: description,
-          address: _tempParkingLocation!.address,
-          numDirection: _tempParkingLocation!.numDirection,
-          street: _tempParkingLocation!.street,
-          district: _tempParkingLocation!.district,
-          city: _tempParkingLocation!.city,
-          latitude: _center!.latitude,
-          price: 2.5,
-          longitude: _center!.longitude);
-
-      print(parking);
-
-      widget.onSave(parking);
-
-      Navigator.pop(context);
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => const ManageGarageScreen()),
-      // );
+      Navigator.pop(context, parking);
     } catch (e) {
       print(e);
     }
   }
 
+  Future<Parking?> onAdd() async {
+    if (_tempParkingLocation == null) return null;
+
+    final description = descriptionFieldController.text;
+    final spaces = int.parse(spacesFieldController.text);
+    final height = double.parse(heightFieldController.text);
+    final length = double.parse(lengthFieldController.text);
+    final width = double.parse(widthFieldController.text);
+
+    return await ParkingService.createParking(
+        userId: 1,
+        width: width,
+        length: length,
+        height: height,
+        space: spaces,
+        description: description,
+        address: _tempParkingLocation!.address,
+        numDirection: _tempParkingLocation!.numDirection,
+        street: _tempParkingLocation!.street,
+        district: _tempParkingLocation!.district,
+        city: _tempParkingLocation!.city,
+        latitude: _center!.latitude,
+        price: 2.5,
+        longitude: _center!.longitude);
+  }
+
+  Future<Parking> onEdit() async {
+    final description = descriptionFieldController.text;
+    final spaces = int.parse(spacesFieldController.text);
+    final height = double.parse(heightFieldController.text);
+    final length = double.parse(lengthFieldController.text);
+    final width = double.parse(widthFieldController.text);
+
+    final location = _tempParkingLocation != null
+        ? _tempParkingLocation!
+        : widget.parking!.location;
+
+    final parking = await ParkingService.updateParking(widget.parking!.id, {
+      'width': width,
+      'length': length,
+      'height': height,
+      'price': 2.5,
+      'phone': '',
+      'space': spaces,
+      'description': description,
+      'address': location.address,
+      'numDirection': location.numDirection,
+      'street': location.street,
+      'district': location.district,
+      'city': location.city,
+      'latitude': _center!.latitude,
+      'longitude': _center!.longitude,
+      'userId': 1
+    });
+
+    return parking;
+  }
+
   @override
   void initState() {
     super.initState();
+
     editMode = widget.id != null;
-    _fetchLocation();
+
+    final parkingLocation = widget.parking?.location;
+
+    searchQueryFieldController = TextEditingController(
+        text: editMode
+            ? "${parkingLocation?.address} ${parkingLocation?.numDirection}"
+            : "");
+    descriptionFieldController = TextEditingController(
+        text: editMode ? widget.parking?.description : "");
+    spacesFieldController = TextEditingController(
+        text: editMode ? widget.parking?.spaces.toString() : "");
+    heightFieldController = TextEditingController(
+        text: editMode ? widget.parking?.height.toString() : "");
+    lengthFieldController = TextEditingController(
+        text: editMode ? widget.parking?.length.toString() : "");
+    widthFieldController = TextEditingController(
+        text: editMode ? widget.parking?.width.toString() : "");
+
+    editMode
+        ? _center = LatLng(widget.parking!.location.latitude,
+            widget.parking!.location.longitude)
+        : _fetchLocation();
   }
 
   @override
@@ -203,6 +249,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: spacesFieldController,
+                keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   label: Text("Espacios disponibles"),
                   alignLabelWithHint: true,
@@ -215,6 +262,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   Expanded(
                     child: TextField(
                       controller: heightFieldController,
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         label: Text("Altura"),
                         alignLabelWithHint: true,
@@ -226,6 +274,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   Expanded(
                     child: TextField(
                       controller: lengthFieldController,
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         label: Text("Longitud"),
                         alignLabelWithHint: true,
@@ -237,6 +286,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   Expanded(
                     child: TextField(
                       controller: widthFieldController,
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         label: Text("Ancho"),
                         alignLabelWithHint: true,
@@ -246,16 +296,16 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   ),
                 ],
               ),
-              // const Divider(height: 56),
-              // OutlinedButton.icon(
-              //     onPressed: () {},
-              //     style: OutlinedButton.styleFrom(
-              //       shape: RoundedRectangleBorder(
-              //           borderRadius: BorderRadius.circular(8)),
-              //       minimumSize: const Size(double.infinity, 40),
-              //     ),
-              //     label: const Text("Agregar horario"),
-              //     icon: const Icon(Icons.schedule_outlined)),
+              const Divider(height: 56),
+              OutlinedButton.icon(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    minimumSize: const Size(double.infinity, 40),
+                  ),
+                  label: const Text("Agregar horario"),
+                  icon: const Icon(Icons.schedule_outlined)),
             ],
           )),
       persistentFooterButtons: [
@@ -269,7 +319,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
               ),
               minimumSize:
                   WidgetStateProperty.all(const Size(double.infinity, 48))),
-          child: const Text("Agregar cochera"),
+          child: Text(editMode ? "Actualizar cochera" : "Agregar cochera"),
         ),
       ],
     );

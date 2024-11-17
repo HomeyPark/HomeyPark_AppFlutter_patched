@@ -29,45 +29,54 @@ class _ManageGarageScreenState extends State<ManageGarageScreen> {
     });
   }
 
-  void onEditGarage(BuildContext context, int id) {
-    Navigator.push(
+  void onEditGarage(BuildContext context, int id, Parking parking) async {
+    final response = await Navigator.push<Parking>(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateEditGarageScreen(
-          id: id,
-          onSave: (parking) {
-            setState(() {
-              final index = _parkingList.indexWhere((p) => p.id == id);
-              if (index != -1) {
-                _parkingList[index] = parking;
-              }
-            });
-          },
-        ),
+        builder: (context) => CreateEditGarageScreen(id: id, parking: parking),
       ),
     );
-  }
 
-  void onDeleteGarage(BuildContext context, int id) {
+    if (response == null) return;
+
     setState(() {
-      _parkingList.removeWhere((parking) => parking.id == id);
+      final index = _parkingList.indexWhere((p) => p.id == id);
+      if (index != -1) {
+        _parkingList[index] = response;
+      }
     });
   }
 
-  void onAddGarage(BuildContext context) {
-    Navigator.push(
+  void onDeleteGarage(BuildContext context, int id) async {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text("Eliminando garaje..."),
+    ));
+
+    await ParkingService.deleteParking(id);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text("Garaje eliminado."),
+    ));
+
+    setState(() {
+      _parkingList = _parkingList.where((parking) => parking.id != id).toList();
+    });
+  }
+
+  void onAddGarage(BuildContext context) async {
+    final response = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateEditGarageScreen(
-          onSave: (parking) {
-            print(parking);
-            setState(() {
-              _parkingList.add(parking);
-            });
-          },
-        ),
+        builder: (context) => const CreateEditGarageScreen(),
       ),
     );
+
+    if (response == null) return;
+
+    setState(() {
+      _parkingList = [..._parkingList, response];
+    });
   }
 
   @override
@@ -84,43 +93,34 @@ class _ManageGarageScreenState extends State<ManageGarageScreen> {
         surfaceTintColor: Colors.white,
       ),
       body: _parkingList.isEmpty
-          ? const CircularProgressIndicator()
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              children: _parkingList.map((parking) {
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _parkingList.length,
+              itemBuilder: (context, index) {
                 return GarageCard(
-                  id: parking.id,
-                  parking: parking,
+                  id: _parkingList[index].id,
+                  parking: _parkingList[index],
                   onDelete: (id) => onDeleteGarage(context, id),
-                  onEdit: (id) => onEditGarage(context, id),
+                  onEdit: (id) =>
+                      onEditGarage(context, id, _parkingList[index]),
                 );
-              }).toList(),
-            ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
-              blurRadius: 16,
-            ),
-          ],
-        ),
-        width: double.infinity,
-        child: FilledButton.icon(
+              }),
+      persistentFooterButtons: [
+        FilledButton.icon(
           onPressed: () => onAddGarage(context),
           icon: const Icon(Icons.add),
           style: ButtonStyle(
-            shape: MaterialStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-            ),
-          ),
+              minimumSize:
+                  WidgetStateProperty.all(const Size(double.infinity, 48))),
           label: const Text("Agregar"),
         ),
-      ),
+      ],
     );
   }
 }
