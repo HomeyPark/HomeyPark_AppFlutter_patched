@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homey_park/model/model.dart';
+
 import 'package:homey_park/widgets/widgets.dart';
 
 class ReservationCard extends StatelessWidget {
@@ -11,18 +12,26 @@ class ReservationCard extends StatelessWidget {
   final TimeOfDay endTime;
   final ReservationStatus status;
   final Function(int)? onTapReservation;
+  final bool? hasAction;
+  final Function(int)? onCancel;
+  final Function(int)? onAccept;
 
-  const ReservationCard({
-    super.key,
-    required this.id,
-    required this.address,
-    required this.number,
-    required this.date,
-    required this.startTime,
-    required this.endTime,
-    required this.status,
-    this.onTapReservation,
-  });
+  final List<Widget>? actions;
+
+  const ReservationCard(
+      {super.key,
+      required this.id,
+      required this.address,
+      required this.number,
+      required this.date,
+      required this.startTime,
+      required this.endTime,
+      required this.status,
+      this.hasAction = false,
+      this.onTapReservation,
+      this.onCancel,
+      this.onAccept,
+      this.actions});
 
   @override
   Widget build(BuildContext context) {
@@ -49,16 +58,20 @@ class ReservationCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("$address $number",
-                          style: theme.textTheme.bodyLarge
-                              ?.apply(color: theme.colorScheme.onSurface)),
-                      Text("#${id.toString().padLeft(7, "0")}",
-                          style: theme.textTheme.bodyMedium?.apply(
-                              color: theme.colorScheme.onSurfaceVariant))
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("$address $number",
+                            style: theme.textTheme.bodyLarge
+                                ?.apply(color: theme.colorScheme.onSurface),
+                            overflow: TextOverflow.ellipsis),
+                        Text("#${id.toString().padLeft(7, "0")}",
+                            style: theme.textTheme.bodyMedium?.apply(
+                                color: theme.colorScheme.onSurfaceVariant),
+                            overflow: TextOverflow.ellipsis)
+                      ],
+                    ),
                   ),
                   const Spacer(),
                   ReservationBadgeStatus(status: status),
@@ -101,7 +114,11 @@ class ReservationCard extends StatelessWidget {
                           style: theme.textTheme.bodySmall
                               ?.apply(color: theme.colorScheme.onSurface)),
                     ],
-                  ))
+                  )),
+              if (hasAction!) ...[
+                const SizedBox(height: 8),
+                Row(children: actions ?? [])
+              ]
             ],
           ),
         ),

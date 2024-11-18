@@ -23,11 +23,13 @@ class _HostReservationsScreenState extends State<HostReservationsScreen> {
   var _inProgressReservationList = <Reservation>[];
   var _toAcceptReservationList = <Reservation>[];
 
-  void onTapReservation(int id) {
-    Navigator.push(
+  void onTapReservation(int id) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ReservationDetailScreen(id: id)),
     );
+
+    _loadHostReservations();
   }
 
   @override
@@ -126,6 +128,42 @@ class _HostReservationsScreenState extends State<HostReservationsScreen> {
                             status: reservation.status,
                             address: snapshot.data!.location.address,
                             number: snapshot.data!.location.numDirection,
+                            hasAction: true,
+                            actions: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () async {
+                                    await ReservationService.cancelReservation(
+                                        reservation.id);
+                                    _loadHostReservations();
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: theme.colorScheme.error),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: Text("Rechazar",
+                                      style: TextStyle(
+                                          color: theme.colorScheme.error)),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: FilledButton(
+                                  onPressed: () async {
+                                    await ReservationService.approveReservation(
+                                        reservation.id);
+                                    _loadHostReservations();
+                                  },
+                                  style: FilledButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  child: const Text("Aceptar"),
+                                ),
+                              ),
+                            ],
                             date: reservation.startTime,
                             startTime:
                                 TimeOfDay.fromDateTime(reservation.startTime),
@@ -162,6 +200,24 @@ class _HostReservationsScreenState extends State<HostReservationsScreen> {
                             endTime:
                                 TimeOfDay.fromDateTime(reservation.endTime),
                             onTapReservation: onTapReservation,
+                            hasAction: true,
+                            actions: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    await ReservationService
+                                        .completeReservation(reservation.id);
+                                    _loadHostReservations();
+                                  },
+                                  child: const Text("Finalizar servicio"),
+                                ),
+                              ),
+                            ],
                           );
                         });
                   },
@@ -191,6 +247,25 @@ class _HostReservationsScreenState extends State<HostReservationsScreen> {
                             endTime:
                                 TimeOfDay.fromDateTime(reservation.endTime),
                             onTapReservation: onTapReservation,
+                            hasAction: true,
+                            actions: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    await ReservationService
+                                        .startServiceReservation(
+                                            reservation.id);
+                                    _loadHostReservations();
+                                  },
+                                  child: const Text("Empezar servicio"),
+                                ),
+                              ),
+                            ],
                           );
                         });
                   },

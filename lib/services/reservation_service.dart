@@ -66,4 +66,52 @@ class ReservationService extends BaseService {
       throw Exception('Failed to create reservation');
     }
   }
+
+  static Future cancelReservation(int id) async {
+    final response = await http.put(Uri.parse('$baseUrl/$id/status'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({"status": "Cancelled"}));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to cancel reservation');
+    }
+  }
+
+  static Future approveReservation(int id) async {
+    final response = await http.put(Uri.parse('$baseUrl/$id/status'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({"status": "Approved"}));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to approve reservation');
+    }
+  }
+
+  static Future completeReservation(int id) async {
+    final response = await http.put(Uri.parse('$baseUrl/$id/status'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({"status": "Completed"}));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to complete reservation');
+    }
+  }
+
+  static Future startServiceReservation(int id) async {
+    final response = await http.put(Uri.parse('$baseUrl/$id/status'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({"status": "InProgress"}));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to start service reservation');
+    }
+  }
 }

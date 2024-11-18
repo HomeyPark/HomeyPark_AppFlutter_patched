@@ -22,11 +22,13 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   var _pastReservationsList = <Reservation>[];
   var _inProgressReservationList = <Reservation>[];
 
-  void onTapReservation(int id) {
-    Navigator.push(
+  Future onTapReservation(int id) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ReservationDetailScreen(id: id)),
     );
+
+    _loadGuestReservations();
   }
 
   @override
@@ -39,6 +41,9 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   }
 
   void _loadGuestReservations() async {
+    setState(() {
+      _loading = true;
+    });
     final reservations = await ReservationService.getReservationsByGuestId(
         await preferences.getUserId());
 

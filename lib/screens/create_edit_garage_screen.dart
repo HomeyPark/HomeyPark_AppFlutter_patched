@@ -296,16 +296,6 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
                   ),
                 ],
               ),
-              const Divider(height: 56),
-              OutlinedButton.icon(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    minimumSize: const Size(double.infinity, 40),
-                  ),
-                  label: const Text("Agregar horario"),
-                  icon: const Icon(Icons.schedule_outlined)),
             ],
           )),
       persistentFooterButtons: [
