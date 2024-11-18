@@ -9,11 +9,11 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await preferences.init();
   await dotenv.load(fileName: ".env");
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();

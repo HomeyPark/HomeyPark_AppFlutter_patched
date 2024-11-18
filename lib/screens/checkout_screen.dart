@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
+import 'package:homey_park/model/card.dart';
+import 'package:homey_park/model/reservation.dart';
+import 'package:homey_park/model/reservation_dto.dart';
+import 'package:homey_park/model/vehicle.dart';
 import 'package:homey_park/screens/home_screen.dart';
+import 'package:homey_park/services/reservation_service.dart';
+import 'package:homey_park/widgets/checkout/payment_select_dialog.dart';
+import 'package:homey_park/widgets/checkout/vehicle_select_dialog.dart';
 import 'package:homey_park/widgets/widgets.dart';
 import 'package:homey_park/model/model.dart';
 
@@ -11,12 +19,38 @@ class CheckoutScreen extends StatefulWidget {
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
+DateTime _combineDateAndTime(String date, String time) {
+  final dateParts = date.split('/');
+  final timeParts = time.split(' ')[0].split(':');
+  final period = time.split(' ')[1];
+
+  int hour = int.parse(timeParts[0]);
+  final minute = int.parse(timeParts[1]);
+
+  if (period == 'PM' && hour != 12) {
+    hour += 12;
+  } else if (period == 'AM' && hour == 12) {
+    hour = 0;
+  }
+
+  return DateTime(
+    int.parse(dateParts[2]),
+    int.parse(dateParts[1]),
+    int.parse(dateParts[0]),
+    hour,
+    minute,
+  );
+}
+
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _dateController = TextEditingController();
   final _startTimeController = TextEditingController();
   final _endTimeController = TextEditingController();
+  PaymentCard? _paymentCard = null;
+  Vehicle? _vehicle = null;
 
   double totalFare = 0.0;
+
   void _calculateTotalFare() {
     if (_startTimeController.text.isEmpty || _endTimeController.text.isEmpty) {
       setState(() {
@@ -47,11 +81,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _startTimeController.addListener(_calculateTotalFare);
-    _endTimeController.addListener(_calculateTotalFare);
+  void _submitReservationRequest() async {
+    if (!_validateForm()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Por favor, complete todos los campos"),
+        ),
+      );
+      return;
+    }
+
+    final guestId = await preferences.getUserId();
+
+    final reservation = ReservationDto(
+      hoursRegistered: totalFare.toInt(),
+      totalFare: totalFare,
+      startTime:
+          _combineDateAndTime(_dateController.text, _startTimeController.text)
+              .toIso8601String(),
+      endTime:
+          _combineDateAndTime(_dateController.text, _endTimeController.text)
+              .toIso8601String(),
+      guestId: guestId,
+      hostId: widget.parking.user.id,
+      parkingId: widget.parking.id,
+      vehicleId: _vehicle!.id!,
+      cardId: _paymentCard!.id!,
+    );
+
+    print(reservation.toJson());
+
+    await ReservationService.createReservation(reservation);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   Future<void> _selectDate() async {
@@ -84,26 +149,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _validateForm() {
     if (_dateController.text.isEmpty ||
         _startTimeController.text.isEmpty ||
-        _endTimeController.text.isEmpty) {
+        _endTimeController.text.isEmpty ||
+        _paymentCard == null ||
+        _vehicle == null) {
       return false;
     }
     return true;
   }
 
-  void registerService() {
-    if (!_validateForm()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Por favor, complete todos los campos"),
-        ),
-      );
-      return;
-    }
+  Future _showPaymentOptionsDialog() async {
+    PaymentCard? selectedCard = await showDialog(
+        context: context, builder: (context) => const PaymentSelectDialog());
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+    if (selectedCard == null) return;
+
+    setState(() {
+      _paymentCard = selectedCard;
+    });
+  }
+
+  Future _showVehicleOptionsDialog() async {
+    Vehicle? selectedVehicle = await showDialog(
+        context: context, builder: (context) => const VehicleSelectDialog());
+
+    if (selectedVehicle == null) return;
+
+    setState(() {
+      _vehicle = selectedVehicle;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimeController.addListener(_calculateTotalFare);
+    _endTimeController.addListener(_calculateTotalFare);
   }
 
   @override
@@ -182,18 +262,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   const Icon(Icons.credit_card),
                   const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("**** **** **** 4885",
-                          style: theme.textTheme.labelMedium?.apply(
-                            color: theme.colorScheme.onSurface,
-                          )),
-                      Text("MARCELO FABIAN GARRO VEGA",
-                          style: theme.textTheme.labelSmall?.apply(
-                              color: theme.colorScheme.onSurfaceVariant)),
-                    ],
-                  )
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_paymentCard != null) ...[
+                          Text(
+                              "**** **** **** ${_paymentCard?.numCard.toInt().toString().substring(12)}",
+                              style: theme.textTheme.labelMedium?.apply(
+                                color: theme.colorScheme.onSurface,
+                              )),
+                          Text(_paymentCard?.holder.toUpperCase() ?? "",
+                              style: theme.textTheme.labelSmall?.apply(
+                                  color: theme.colorScheme.onSurfaceVariant)),
+                        ] else
+                          Text("Seleccionar tarjeta",
+                              style: theme.textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: _showPaymentOptionsDialog,
+                      icon: const Icon(Icons.edit))
                 ],
               ),
             ),
@@ -204,18 +294,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   const Icon(Icons.directions_car_outlined),
                   const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("B521C31",
-                          style: theme.textTheme.labelMedium?.apply(
-                            color: theme.colorScheme.onSurface,
-                          )),
-                      Text("Toyota Corolla",
-                          style: theme.textTheme.labelSmall?.apply(
-                              color: theme.colorScheme.onSurfaceVariant)),
-                    ],
-                  )
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_vehicle != null) ...[
+                          Text(_vehicle?.licensePlate ?? "",
+                              style: theme.textTheme.labelMedium?.apply(
+                                color: theme.colorScheme.onSurface,
+                              )),
+                          Text(_vehicle?.brand ?? "",
+                              style: theme.textTheme.labelSmall?.apply(
+                                  color: theme.colorScheme.onSurfaceVariant)),
+                        ] else
+                          Text("Seleccionar vehículo",
+                              style: theme.textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: _showVehicleOptionsDialog,
+                      icon: const Icon(Icons.edit))
                 ],
               ),
             ),
@@ -246,30 +345,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withOpacity(0.1),
-              blurRadius: 16,
-            ),
-          ],
-        ),
-        width: double.infinity,
-        child: FilledButton(
-          onPressed: registerService,
+      persistentFooterButtons: [
+        FilledButton.icon(
+          onPressed: _submitReservationRequest,
+          icon: const Icon(Icons.add),
           style: ButtonStyle(
-            shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-            ),
-          ),
-          child: const Text("Pagar y reservar"),
+              minimumSize:
+                  WidgetStateProperty.all(const Size(double.infinity, 48))),
+          label: const Text("Pagar y reservar"),
         ),
-      ),
+      ],
     );
   }
 }

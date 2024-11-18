@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:homey_park/model/reservation.dart';
+import 'package:homey_park/model/reservation_dto.dart';
 import 'package:homey_park/services/base_service.dart';
 import 'package:http/http.dart' as http;
 
@@ -49,6 +50,20 @@ class ReservationService extends BaseService {
       return reservations;
     } else {
       return [];
+    }
+  }
+
+  static Future createReservation(ReservationDto reservation) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(reservation.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create reservation');
     }
   }
 }
