@@ -17,13 +17,14 @@ class PaymentService extends BaseService {
     }
   }
 
-  static Future<PaymentCard?> postPaymentCard(PaymentCard newCard) async {
+  static Future<PaymentCard?> postPaymentCard(
+      PaymentCard newCard, int userId) async {
     final response = await http.post(
       Uri.parse('$url/create'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode({...newCard.toJson(), "userId": 1}),
+      body: jsonEncode({...newCard.toJson(), "userId": userId}),
     );
 
     if (response.statusCode == 201) {

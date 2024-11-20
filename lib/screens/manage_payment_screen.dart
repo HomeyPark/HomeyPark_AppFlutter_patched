@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 import 'package:homey_park/model/card.dart';
 import 'package:homey_park/services/user_service.dart';
 import 'package:homey_park/widgets/payment_card_widget.dart';
@@ -8,7 +9,6 @@ class ManagePaymentScreen extends StatefulWidget {
   const ManagePaymentScreen({super.key});
 
   @override
-
   State<ManagePaymentScreen> createState() => _ManagePaymentScreenState();
 }
 
@@ -19,6 +19,20 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
   final TextEditingController cvvController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController holderController = TextEditingController();
+
+  late int userId;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    preferences.getUserId().then((value) {
+      setState(() {
+        userId = value;
+      });
+    });
+  }
 
   void handleDeleteVehicle(int id) async {
     final response = await PaymentService.deletePaymentCard(id);
@@ -66,7 +80,8 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
                         holder: holderController.text,
                       );
 
-                      final addedCard = await PaymentService.postPaymentCard(newCard);
+                      final addedCard =
+                          await PaymentService.postPaymentCard(newCard, userId);
 
                       if (addedCard != null) {
                         setState(() {
@@ -95,7 +110,7 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
             ),
             const SizedBox(height: 16),
             FutureBuilder(
-                future: UserService.getUserById(1),
+                future: UserService.getUserById(userId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     cards = snapshot.data!.cards;
@@ -113,7 +128,7 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
                               ),
                               clipBehavior: Clip.antiAlias,
                               shadowColor:
-                              theme.colorScheme.primary.withOpacity(0.4),
+                                  theme.colorScheme.primary.withOpacity(0.4),
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Row(
@@ -123,18 +138,18 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text("${cards[index].numCard}",
                                               style: theme.textTheme.labelMedium
                                                   ?.apply(
-                                                  color: theme.colorScheme
-                                                      .onSurface)),
+                                                      color: theme.colorScheme
+                                                          .onSurface)),
                                           Text(cards[index].holder,
                                               style: theme.textTheme.bodySmall
                                                   ?.apply(
-                                                  color: theme.colorScheme
-                                                      .onSurfaceVariant)),
+                                                      color: theme.colorScheme
+                                                          .onSurfaceVariant)),
                                         ],
                                       ),
                                     ),
@@ -142,8 +157,7 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
                                         onPressed: () {
                                           handleDeleteVehicle(cards[index].id!);
                                         },
-                                        icon:
-                                        const Icon(Icons.delete_outlined))
+                                        icon: const Icon(Icons.delete_outlined))
                                   ],
                                 ),
                               ),
@@ -165,4 +179,3 @@ class _ManagePaymentScreenState extends State<ManagePaymentScreen> {
     );
   }
 }
-

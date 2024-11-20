@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 import 'package:homey_park/screens/screen.dart';
 import 'package:homey_park/services/parking_service.dart';
 // import 'package:homey_park/services/user_service.dart';
@@ -23,7 +24,9 @@ class _ManageGarageScreenState extends State<ManageGarageScreen> {
   }
 
   void _loadParkingList() async {
-    final parkingList = await ParkingService.getParkingListByUserId(1);
+    final userId = await preferences.getUserId();
+
+    final parkingList = await ParkingService.getParkingListByUserId(userId);
     setState(() {
       _parkingList = parkingList;
     });

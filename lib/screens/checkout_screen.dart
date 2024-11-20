@@ -109,6 +109,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       cardId: _paymentCard!.id!,
     );
 
+    print("DEBUG");
+
     print(reservation.toJson());
 
     await ReservationService.createReservation(reservation);

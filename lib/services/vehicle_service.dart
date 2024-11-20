@@ -16,13 +16,13 @@ class VehicleService {
     }
   }
 
-  static Future<Vehicle?> postVehicle(Vehicle newVehicle) async {
+  static Future<Vehicle?> postVehicle(Vehicle newVehicle, int userId) async {
     final response = await http.post(
       Uri.parse('$url/create'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
-      body: jsonEncode({...newVehicle.toJson(), "userId": 1}),
+      body: jsonEncode({...newVehicle.toJson(), "userId": userId}),
     );
 
     if (response.statusCode == 201) {

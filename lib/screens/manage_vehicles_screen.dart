@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 import 'package:homey_park/model/vehicle.dart';
 import 'package:homey_park/services/user_service.dart';
 import 'package:homey_park/services/vehicle_service.dart';
@@ -17,6 +18,20 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
   final TextEditingController licensePlateController = TextEditingController();
   final TextEditingController brandController = TextEditingController();
   final TextEditingController modelController = TextEditingController();
+
+  late int userId;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    preferences.getUserId().then((value) {
+      setState(() {
+        userId = value;
+      });
+    });
+  }
 
   void handleDeleteVehicle(int id) async {
     final response = await VehicleService.deleteVehicle(id);
@@ -49,14 +64,13 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
                       brand: brandController,
                       model: modelController,
                       onSave: () async {
-
                         final newVehicle = Vehicle(
-                          licensePlate: licensePlateController.text,
-                          brand: brandController.text,
-                          model: modelController.text
-                        );
+                            licensePlate: licensePlateController.text,
+                            brand: brandController.text,
+                            model: modelController.text);
 
-                        final addedCard = await VehicleService.postVehicle(newVehicle);
+                        final addedCard = await VehicleService.postVehicle(
+                            newVehicle, userId);
 
                         if (addedCard != null) {
                           setState(() {
@@ -68,7 +82,8 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
                   },
                 );
               },
-            child: const Text("Agregar"))],
+              child: const Text("Agregar"))
+        ],
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.white,
@@ -83,7 +98,7 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
             ),
             const SizedBox(height: 16),
             FutureBuilder(
-                future: UserService.getUserById(1),
+                future: UserService.getUserById(userId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
                     vehicles = snapshot.data!.vehicles;
@@ -131,30 +146,41 @@ class _ManageVehiclesScreenState extends State<ManageVehiclesScreen> {
                                       onPressed: () {
                                         final selectedVehicle = vehicles[index];
 
-                                        licensePlateController.text = selectedVehicle.licensePlate;
-                                        brandController.text = selectedVehicle.brand;
-                                        modelController.text = selectedVehicle.model;
+                                        licensePlateController.text =
+                                            selectedVehicle.licensePlate;
+                                        brandController.text =
+                                            selectedVehicle.brand;
+                                        modelController.text =
+                                            selectedVehicle.model;
 
                                         showDialog(
                                           context: context,
                                           builder: (context) {
                                             return NewVehicle(
-                                              licenseplate: licensePlateController,
+                                              licenseplate:
+                                                  licensePlateController,
                                               brand: brandController,
                                               model: modelController,
                                               onSave: () async {
                                                 final updatedVehicle = Vehicle(
                                                   id: selectedVehicle.id,
-                                                  licensePlate: licensePlateController.text,
+                                                  licensePlate:
+                                                      licensePlateController
+                                                          .text,
                                                   brand: brandController.text,
                                                   model: modelController.text,
                                                 );
 
-                                                final updatedVehicleResponse = await VehicleService.putVehicle(updatedVehicle);
+                                                final updatedVehicleResponse =
+                                                    await VehicleService
+                                                        .putVehicle(
+                                                            updatedVehicle);
 
-                                                if (updatedVehicleResponse != null) {
+                                                if (updatedVehicleResponse !=
+                                                    null) {
                                                   setState(() {
-                                                    vehicles[index] = updatedVehicleResponse;
+                                                    vehicles[index] =
+                                                        updatedVehicleResponse;
                                                   });
                                                   Navigator.pop(context);
                                                 }

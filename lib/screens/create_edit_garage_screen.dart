@@ -8,6 +8,7 @@ import 'package:homey_park/model/parking_location.dart';
 import 'package:homey_park/services/external_google_places_service.dart';
 import 'package:homey_park/services/parking_service.dart';
 import 'package:homey_park/utils/user_location.dart';
+import 'package:homey_park/config/pref/preferences.dart';
 
 class CreateEditGarageScreen extends StatefulWidget {
   final int? id;
@@ -90,6 +91,8 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
   Future<Parking?> onAdd() async {
     if (_tempParkingLocation == null) return null;
 
+    final userId = await preferences.getUserId();
+
     final description = descriptionFieldController.text;
     final spaces = int.parse(spacesFieldController.text);
     final height = double.parse(heightFieldController.text);
@@ -97,7 +100,7 @@ class _CreateEditGarageScreenState extends State<CreateEditGarageScreen> {
     final width = double.parse(widthFieldController.text);
 
     return await ParkingService.createParking(
-        userId: 1,
+        userId: userId,
         width: width,
         length: length,
         height: height,
